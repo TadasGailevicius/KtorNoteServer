@@ -1,5 +1,6 @@
 package com.example
 
+import com.example.routes.loginRoute
 import com.example.routes.registerRoute
 import io.ktor.application.*
 import io.ktor.features.*
@@ -18,6 +19,7 @@ fun Application.module(testing: Boolean = false) {
     install(CallLogging)
     install(Routing) {
         registerRoute()
+        loginRoute()
     }
     install(ContentNegotiation) {
         gson {
