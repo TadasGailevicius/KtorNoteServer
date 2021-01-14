@@ -2,35 +2,38 @@ package com.example
 
 import com.example.data.checkPasswordForEmail
 import com.example.routes.loginRoute
+import com.example.routes.noteRoutes
 import com.example.routes.registerRoute
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.features.*
-import io.ktor.gson.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
+import io.ktor.application.Application
+import io.ktor.application.install
+import io.ktor.auth.Authentication
+import io.ktor.auth.UserIdPrincipal
+import io.ktor.auth.basic
+import io.ktor.features.CallLogging
+import io.ktor.features.ContentNegotiation
+import io.ktor.features.DefaultHeaders
+import io.ktor.gson.gson
+import io.ktor.routing.Routing
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
-
     install(DefaultHeaders)
     install(CallLogging)
-    install(Routing) {
-        registerRoute()
-        loginRoute()
-    }
     install(ContentNegotiation) {
         gson {
             setPrettyPrinting()
         }
     }
-
     install(Authentication) {
         configureAuth()
+    }
+    install(Routing) {
+        registerRoute()
+        loginRoute()
+        noteRoutes()
     }
 }
 
@@ -40,10 +43,11 @@ private fun Authentication.Configuration.configureAuth() {
         validate { credentials ->
             val email = credentials.name
             val password = credentials.password
-            if(checkPasswordForEmail(email,password)) {
+            if(checkPasswordForEmail(email, password)) {
                 UserIdPrincipal(email)
             } else null
         }
     }
 }
+
 
