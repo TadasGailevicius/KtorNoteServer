@@ -1,10 +1,10 @@
 package com.example.routes
 
+import com.example.data.*
 import com.example.data.collections.Note
-import com.example.data.deleteNoteForUser
-import com.example.data.getNotesForUser
+import com.example.data.requests.AddOwnerRequest
 import com.example.data.requests.DeleteNoteRequest
-import com.example.data.saveNote
+import com.example.data.responses.SimpleResponse
 import io.ktor.application.call
 import io.ktor.auth.UserIdPrincipal
 import io.ktor.auth.authenticate
@@ -49,6 +49,46 @@ fun Route.noteRoutes() {
                 } else {
                     call.respond(Conflict)
                 }
+            }
+        }
+    }
+
+    route("/addOwnerToNote") {
+        authenticate {
+            post {
+                val request = try {
+                    call.receive<AddOwnerRequest>()
+                } catch (e: ContentTransformationException) {
+                    call.respond(BadRequest)
+                    return@post
+                }
+
+                if(!checkIfUserExists(request.owner)) {
+                    call.respond(
+                        OK,
+                        SimpleResponse(false, "No user with this E-Mail exists")
+                    )
+                    return@post
+                }
+
+                if(isOwnerOfNote(request.noteId, request.owner)){
+                    call.respond(
+                        OK,
+                        SimpleResponse(false, "This user is already an owner of this note")
+                    )
+
+                    return@post
+                }
+
+                if(addOwnerToNote(request.noteId, request.owner)) {
+                    call.respond(
+                        OK,
+                        SimpleResponse(true, "${request.owner} can now see this note")
+                    )
+                } else {
+                    call.respond(Conflict)
+                }
+
             }
         }
     }
